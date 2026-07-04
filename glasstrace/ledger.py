@@ -53,6 +53,23 @@ def stage_for(gate: str) -> str:
     return ""
 
 
+def _row_state(line: str) -> str | None:
+    """Detect the state of a gate row.
+
+    For a markdown table row, read ONLY the State column — the cell immediately
+    after the one naming the gate — so a free-text note (e.g. "出门验收已过")
+    cannot be mistaken for the gate's actual state. For a non-table line, fall
+    back to scanning the whole line.
+    """
+    if "|" in line:
+        cells = [c.strip() for c in line.split("|")]
+        gate_idx = next((i for i, c in enumerate(cells) if GATE_RE.search(c)), None)
+        if gate_idx is not None and gate_idx + 1 < len(cells):
+            return detect_state(cells[gate_idx + 1])
+        return None
+    return detect_state(line)
+
+
 def parse_ledger(text: str) -> dict[str, str]:
     """Return ``{gate: canonical_state}`` for every recognizable gate row.
 
@@ -65,7 +82,7 @@ def parse_ledger(text: str) -> dict[str, str]:
         gm = GATE_RE.search(line)
         if not gm:
             continue
-        state = detect_state(line)
+        state = _row_state(line)
         if state is None:
             continue
         states[f"gate{gm.group(1)}"] = state

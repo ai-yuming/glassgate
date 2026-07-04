@@ -37,6 +37,13 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(states["gate5"], "blocked")
         self.assertEqual(states["gate6"], "hold")
 
+    def test_state_column_wins_over_note_column(self):
+        # A free-text note containing a state word ("已过") must NOT override the
+        # actual State column. Real-data bug: gate5 is 进行中 but its note said
+        # "出门验收已过" — the state must remain progress, not be read as passed.
+        text = "| gate5 部署发布 | 进行中 | 出门验收已过(厂长批准),转 public 候商标检索 |"
+        self.assertEqual(ledger.parse_ledger(text)["gate5"], "progress")
+
 
 class DiffTests(unittest.TestCase):
     def test_diff_reports_only_changed_gates_with_from_and_to(self):
