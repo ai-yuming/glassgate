@@ -33,6 +33,7 @@ def reduce_at(events: list[dict[str, Any]], cutoff: str | None = None) -> dict[s
                 state.setdefault(proj, {}).update(gates)
         elif kind == schema.KIND_GATE_TRANSITION:
             proj, gate, to = ev.get("project"), ev.get("gate"), ev.get("to")
-            if proj and gate:
+            # Ignore a malformed transition with no target state (don't corrupt).
+            if proj and gate and to is not None:
                 state.setdefault(proj, {})[gate] = to
     return state
