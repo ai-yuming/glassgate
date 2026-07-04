@@ -48,16 +48,31 @@ records every gate transition.
 ## The wall
 
 Three panels, one screen, meant for the person who approves — not the person who
-codes:
+codes. The screenshots below are real: Glassgate dogfooding its own lifecycle
+ledger.
 
-| ② Pending | ① Project lanes | ③ Audit stream |
-|---|---|---|
-| _(screenshot placeholder)_ | _(screenshot placeholder)_ | _(screenshot placeholder)_ |
-| What's blocked on you, with a one-click approval command to relay. | Every project's seven-stage progress, gate by gate. | Recent tool-gate rulings, in plain language. |
+**① Project lanes** — every project's seven-stage progress, gate by gate (here,
+Glassgate itself: gates 1–4 passed, gate 5 in progress):
+
+![Project lanes](docs/assets/wall-lanes.png)
+
+**② Pending** — what's blocked on you, each with a one-click approval command to
+relay to your agent (shown here with a clear queue — nothing is blocked on you
+right now):
+
+![Pending approvals](docs/assets/wall-pending.png)
+
+**③ Audit stream** — recent tool-gate rulings, in plain language:
+
+![Audit stream](docs/assets/wall-audit.png)
+
+### Replay
 
 Replay mode reconstructs the **state at any past moment** — drag the timeline and
-watch each lane become what it was, gate by gate. It is clearly banner-marked
-`🎬 replay · not live`.
+watch each lane become what it was, gate by gate. Clearly banner-marked
+`🎬 replay · not live`:
+
+![State replay](docs/assets/replay.png)
 
 ---
 
