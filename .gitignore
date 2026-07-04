@@ -1,0 +1,10 @@
+# Runtime trace artifacts — JSONL is the source of truth but instance logs are
+# not versioned; the SQLite index is always rebuildable from JSONL.
+logs/*.jsonl
+logs/*.db
+logs/ledger-cache.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
