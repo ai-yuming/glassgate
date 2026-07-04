@@ -330,9 +330,17 @@ def main(argv: list[str] | None = None) -> int:
 
     instance = Path(args.instance)
     events_path = Path(args.events) if args.events else instance / "logs" / "events.jsonl"
+    ledgers = scan_ledgers(instance)
+
+    # Reconcile FIRST: catch any manual ledger edit the hook missed and record it
+    # before we render, so the wall reflects a complete event stream (R12, ②).
+    cache_path = instance / "logs" / "ledger-cache.json"
+    reconciled = _ledger.reconcile_instance(ledgers, events_path, cache_path)
+    if reconciled:
+        print(f"  reconcile: recorded {len(reconciled)} catch-up transition(s)")
+
     text = events_path.read_text(encoding="utf-8") if events_path.is_file() else ""
     events, _bad = schema.parse_events(text)
-    ledgers = scan_ledgers(instance)
     locale = load_locale(args.locale)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 

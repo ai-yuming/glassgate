@@ -163,6 +163,24 @@ def reconcile(ledgers: dict[str, dict[str, str]], events_text: str,
     return new_events, cache
 
 
+def reconcile_instance(ledgers: dict[str, dict[str, str]], events_path: Path,
+                       cache_path: Path, ts: str | None = None) -> list[dict[str, Any]]:
+    """Run reconcile at wall-generation time, persisting any catch-up events.
+
+    Reads the event log + cache, detects drift against the ground-truth ledgers,
+    appends `actor:"reconcile"` transitions, and updates the cache. This is the
+    wiring that makes acceptance ② fire "at the next wall generation".
+    """
+    events_text = events_path.read_text(encoding="utf-8") if events_path.is_file() else ""
+    cache = _load_cache(cache_path)
+    new_events, updated_cache = reconcile(ledgers, events_text, cache=cache, ts=ts)
+    if new_events:
+        _append_events(events_path, new_events)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(updated_cache, ensure_ascii=False, indent=2), encoding="utf-8")
+    return new_events
+
+
 # ── CLI (used by hooks/ledger-diff.sh) ──────────────────────────────────────
 def _cmd_hook(args: argparse.Namespace) -> int:
     events = hook_diff(Path(args.ledger), Path(args.events), Path(args.cache),
