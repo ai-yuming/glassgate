@@ -1,0 +1,27 @@
+{
+  "$comment": "Glassgate self-hosted governance hooks. Portable paths via $CLAUDE_PROJECT_DIR (no hardcoded username). gate-check.sh blocks writes when a project's gate2 has not passed (strict mode: exit 2 + stderr, so the warning reaches the agent). ledger-diff.sh records gate transitions when a _lifecycle.md is written.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/hooks/gate-check.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/hooks/ledger-diff.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
