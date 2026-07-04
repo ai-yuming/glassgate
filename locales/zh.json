@@ -39,7 +39,7 @@
   },
   "replay": {
     "banner_tag": "🎬 回放",
-    "banner_text": "回放 · 非实时看板 · 拖动时间轴查看历史状态",
+    "banner_text": "非实时看板 · 拖动时间轴查看历史状态",
     "recorded": "录制区间",
     "play": "▶ 播放",
     "pause": "⏸ 暂停",
