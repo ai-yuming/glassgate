@@ -1,0 +1,48 @@
+{
+  "locale": "zh",
+  "html_lang": "zh-CN",
+  "title": "玻璃墙 · {instance}",
+  "brand": "🪟 玻璃墙",
+  "meta_projects": "项目",
+  "meta_pending": "待批",
+  "meta_audit": "审计",
+  "meta_audit_unit": "条",
+  "meta_generated": "生成于",
+  "static_note": "静态快照 · 刷新即重跑",
+  "section_pending": "待批事项",
+  "section_lanes": "项目泳道",
+  "section_audit": "审计流",
+  "footer": "静态快照 · 零网络 · 零服务 · 零常驻 | 手动刷新：cli/harness wall",
+  "empty_lanes": "实例内暂无项目台账。",
+  "empty_pending": "✅ 当前没有待批事项。",
+  "empty_audit": "暂无审计记录。",
+  "lane_current": "当前",
+  "lane_all_passed": "全部阶段已过 ✅",
+  "states": {
+    "passed":   { "label": "已过",   "css": "passed",   "glyph": "✅" },
+    "progress": { "label": "进行中", "css": "progress", "glyph": "🟡" },
+    "blocked":  { "label": "未过",   "css": "blocked",  "glyph": "⛔" },
+    "todo":     { "label": "占位",   "css": "todo",     "glyph": "⏳" },
+    "hold":     { "label": "挂起",   "css": "hold",     "glyph": "⏸" }
+  },
+  "stages": {
+    "①": "立项", "②": "需求设计", "③": "开发实现", "④": "测试验证",
+    "⑤": "部署发布", "⑥": "运维迭代", "⑦": "退役迁移"
+  },
+  "actions": {
+    "allow": "放行", "warned": "软提醒", "blocked": "已阻断", "skip": "跳过"
+  },
+  "modes": { "soft": "软", "strict": "严格" },
+  "audit_cols": {
+    "ts": "时间(UTC)", "project": "项目", "tool": "工具",
+    "mode": "模式", "action": "动作", "kind": "类型"
+  },
+  "replay": {
+    "banner_tag": "🎬 回放",
+    "banner_text": "回放 · 非实时看板 · 拖动时间轴查看历史状态",
+    "recorded": "录制区间",
+    "play": "▶ 播放",
+    "pause": "⏸ 暂停",
+    "at_time": "回放时刻"
+  }
+}

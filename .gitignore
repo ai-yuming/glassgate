@@ -8,3 +8,6 @@ logs/ledger-cache.json
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Playwright MCP verification artifacts
+.playwright-mcp/
