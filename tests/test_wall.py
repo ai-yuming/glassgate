@@ -45,6 +45,24 @@ class RegularWallTests(unittest.TestCase):
         self.assertNotIn("https://", html)
 
 
+class PendingPanelTests(unittest.TestCase):
+    def test_pending_card_for_blocked_frontier_gate(self):
+        # A project whose first non-passed gate is blocked is "pending your
+        # approval" — it must surface with a copy-ready relay command.
+        ledgers = {"acme": {"gate1": "passed", "gate2": "blocked"}}
+        html = wall.build_regular(ledgers, [], LOCALE, instance="x", generated_at="now")
+        self.assertIn("acme", html)
+        self.assertIn(LOCALE["pending_badge"], html)
+        self.assertIn("gate2", html)
+        self.assertIn(LOCALE["pending_copy"], html)  # copy button present
+
+    def test_no_pending_when_nothing_blocked(self):
+        # Frontier gate in progress (not blocked) -> nothing pending -> empty state.
+        ledgers = {"glassgate": {"gate1": "passed", "gate2": "passed", "gate5": "progress"}}
+        html = wall.build_regular(ledgers, [], LOCALE, instance="x", generated_at="now")
+        self.assertIn(LOCALE["empty_pending"], html)
+
+
 class ReplayWallTests(unittest.TestCase):
     def setUp(self):
         self.html = wall.build_replay(LEDGERS, REPLAY_EVENTS, LOCALE,

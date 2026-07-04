@@ -14,8 +14,12 @@
   "section_audit": "审计流",
   "footer": "静态快照 · 零网络 · 零服务 · 零常驻 | 手动刷新：cli/harness wall",
   "empty_lanes": "实例内暂无项目台账。",
-  "empty_pending": "✅ 当前没有待批事项。",
+  "empty_pending": "✅ 当前没有待批事项——所有项目的当前门禁都已放行或未卡在你这。",
   "empty_audit": "暂无审计记录。",
+  "pending_badge": "待批",
+  "pending_approve_cmd": "读 {project}/_lifecycle.md，厂长批准 {gate}，更新台账并继续",
+  "pending_hint": "把这条指令发给你的 agent——界面不替你按门，你守门。",
+  "pending_copy": "复制批准指令",
   "lane_current": "当前",
   "lane_all_passed": "全部阶段已过 ✅",
   "states": {

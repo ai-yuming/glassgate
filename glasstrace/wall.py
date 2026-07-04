@@ -75,6 +75,17 @@ background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:
 .chip.todo .st{color:var(--todo)}.chip.unknown .st{color:var(--dim)}
 .pend{background:linear-gradient(180deg,#241318,#1a1013);border:1px solid #47262a;
 border-left:3px solid var(--blocked);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.pend header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pend h3{margin:0;font-size:15px}
+.pend .what{color:var(--dim);font-size:13px;margin:8px 0 10px}
+.pend .cmd{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.pend code{flex:1 1 300px;background:#0d1117;border:1px solid var(--line);border-radius:8px;
+padding:10px 12px;font-family:var(--mono);font-size:12.5px;color:#c9d5e0;word-break:break-all}
+.pend button.copy{background:var(--amber);color:#1a1205;border:0;border-radius:8px;
+padding:0 16px;font-weight:700;cursor:pointer;white-space:nowrap}
+.pend .hint{color:var(--dim);font-size:12px;margin:10px 0 0}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;font-family:var(--mono)}
+.badge.blocked{background:#3a1b1b;color:var(--blocked);border:1px solid #5a2626}
 table.audit{width:100%;border-collapse:collapse;font-size:12.5px}
 table.audit th{text-align:left;color:var(--dim);padding:8px 10px;border-bottom:1px solid var(--line);
 font-size:11px;letter-spacing:1px}
@@ -148,26 +159,68 @@ def _audit_table(locale: dict, events: list[dict]) -> str:
     return f'<table class="audit"><thead>{head}</thead><tbody>{"".join(rows)}</tbody></table>'
 
 
+def _pending_projects(ledgers: dict[str, dict[str, str]]) -> list[tuple[str, str]]:
+    """Projects whose first non-passed (frontier) gate is blocked — i.e. stuck
+    waiting on the approver. Returns [(project, gate)]."""
+    out: list[tuple[str, str]] = []
+    for proj, gates in sorted(ledgers.items()):
+        frontier = next((g for g in _gates_sorted(gates) if gates[g] != "passed"), None)
+        if frontier and gates[frontier] == "blocked":
+            out.append((proj, frontier))
+    return out
+
+
+def _pending_card(locale: dict, project: str, gate: str) -> str:
+    cmd = (locale.get("pending_approve_cmd", "")
+           .replace("{project}", project).replace("{gate}", gate))
+    stage = _ledger.stage_for(gate)
+    stage_name = locale.get("stages", {}).get(stage, "")
+    return (f'<article class="pend"><header><h3>{_esc(project)}</h3>'
+            f'<span class="badge blocked">{_esc(gate)} {_esc(locale.get("pending_badge",""))}</span>'
+            f'</header><p class="what">{_esc(stage)} {_esc(stage_name)}</p>'
+            f'<div class="cmd"><code>{_esc(cmd)}</code>'
+            f'<button class="copy" data-cmd="{_esc(cmd)}">{_esc(locale.get("pending_copy",""))}</button></div>'
+            f'<p class="hint">{_esc(locale.get("pending_hint",""))}</p></article>')
+
+
+# Copy-to-clipboard relay for pending approval commands (the UI never approves;
+# it hands you a command to relay to your agent).
+_COPY_JS = (
+    '<script>document.addEventListener("click",function(e){'
+    'var b=e.target.closest("button.copy");if(!b)return;'
+    'var c=b.getAttribute("data-cmd")||"";'
+    'if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(c);}'
+    'var t=b.textContent;b.textContent="✓";setTimeout(function(){b.textContent=t;},1500);'
+    '});</script>'
+)
+
+
 def build_regular(ledgers: dict[str, dict[str, str]], events: list[dict], locale: dict,
                   instance: str, generated_at: str) -> str:
     lanes = "".join(_lane_card(locale, p, g) for p, g in sorted(ledgers.items())) \
         or f'<p class="empty">{_esc(locale.get("empty_lanes",""))}</p>'
     audit = _audit_table(locale, events)
     checks = [e for e in events if e.get("kind") == "tool_check"]
+    pend = _pending_projects(ledgers)
+    pending_html = "".join(_pending_card(locale, p, g) for p, g in pend) \
+        or f'<p class="empty">{_esc(locale.get("empty_pending",""))}</p>'
     body = (
         '<header class="top">'
         f'<h1><span class="glass">{_esc(locale.get("brand",""))}</span> · {_esc(instance)}</h1>'
         f'<div class="meta">{_esc(locale.get("meta_projects",""))} <b>{len(ledgers)}</b> · '
+        f'{_esc(locale.get("meta_pending",""))} <b>{len(pend)}</b> · '
         f'{_esc(locale.get("meta_audit",""))} <b>{len(checks)}</b> {_esc(locale.get("meta_audit_unit",""))} · '
         f'{_esc(locale.get("meta_generated",""))} <b>{_esc(generated_at)}</b></div></header>'
-        f'<main><section><h2>{_esc(locale.get("section_lanes",""))}</h2>'
+        f'<main><section id="pending"><h2>{_esc(locale.get("section_pending",""))}</h2>'
+        f'{pending_html}</section>'
+        f'<section><h2>{_esc(locale.get("section_lanes",""))}</h2>'
         f'<div id="lanes">{lanes}</div></section>'
         f'<section><h2>{_esc(locale.get("section_audit",""))}</h2>{audit}</section></main>'
         f'<footer class="bot">{_esc(locale.get("footer",""))} | {_esc(generated_at)}</footer>'
     )
     return _page(locale.get("html_lang", "en"),
                  locale.get("title", "{instance}").replace("{instance}", instance),
-                 "", body)
+                 "", body, _COPY_JS)
 
 
 # ── replay ──────────────────────────────────────────────────────────────────
