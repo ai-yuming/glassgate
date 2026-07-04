@@ -19,7 +19,7 @@ regenerates a single static HTML file. The event log is plain JSONL you can
 Glassgate is pure `bash` + `python3` standard library. Nothing to install.
 
 ```bash
-git clone <your-fork> glassgate && cd glassgate
+git clone https://github.com/ai-yuming/glassgate.git && cd glassgate
 
 # 1. Point it at your projects: each managed project keeps a lifecycle ledger at
 #    projects/<name>/_lifecycle.md  (or docs/specs/<name>/_lifecycle.md)
@@ -52,7 +52,7 @@ codes. The screenshots below are real: Glassgate dogfooding its own lifecycle
 ledger.
 
 **① Project lanes** — every project's seven-stage progress, gate by gate (here,
-Glassgate itself: gates 1–4 passed, gate 5 in progress):
+Glassgate itself: gates 1–5 passed, gate 6 in progress):
 
 ![Project lanes](docs/assets/wall-lanes.png)
 
