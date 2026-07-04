@@ -1,6 +1,6 @@
 """Lifecycle ledger parsing, diffing, and gate-transition capture.
 
-Two-layer capture guarantees zero silent loss (design §3 "双保险", R12):
+Two-layer capture guarantees zero silent loss (design §3 "double safeguard", R12):
 
   1. ledger-diff hook (real time): when Claude Code writes a `_lifecycle.md`,
      diff the new states against `logs/ledger-cache.json` and append a

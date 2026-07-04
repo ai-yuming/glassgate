@@ -36,7 +36,9 @@ def _esc(s: Any) -> str:
 
 def _state_meta(locale: dict, state: str | None) -> tuple[str, str, str]:
     meta = locale.get("states", {}).get(state or "", {})
-    return meta.get("label", "未知"), meta.get("css", "unknown"), meta.get("glyph", "？")
+    # English fallbacks when a state has no locale entry — code stays English;
+    # all localized labels come from the locale pack.
+    return meta.get("label", "unknown"), meta.get("css", "unknown"), meta.get("glyph", "?")
 
 
 # ── shared page shell ───────────────────────────────────────────────────────

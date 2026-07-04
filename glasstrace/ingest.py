@@ -108,7 +108,8 @@ def ingest(jsonl_paths: Iterable[Path | str], db_path: Path | str) -> dict[str, 
         except sqlite3.DatabaseError as exc:
             # The index is a rebuildable derivative — a corrupt/non-SQLite file
             # is recoverable by deleting it. Fail loud with that instruction
-            # rather than crashing opaquely (R12; design: "DB 坏了删掉重建即可").
+            # rather than crashing opaquely (R12; the design mandates that a
+            # broken db is simply deleted and rebuilt).
             raise RuntimeError(
                 f"{db_path} is not a valid SQLite index ({exc}). "
                 f"Delete it and re-run ingest — JSONL is the source of truth."

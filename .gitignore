@@ -4,6 +4,9 @@ logs/*.jsonl
 logs/*.db
 logs/ledger-cache.json
 
+# Generated glass wall (single-file HTML output — regenerate with `harness wall`)
+glasswall/*.html
+
 # Python
 __pycache__/
 *.pyc
