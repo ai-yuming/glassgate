@@ -1,0 +1,70 @@
+#!/bin/bash
+# ─────────────────────────────────────────────────────────────────────────────
+# harness — Glassgate single-file CLI (trace layer v0.1)
+#   Commands: version | doctor | trace ingest | trace doctor | wall [--replay]
+#   Pure bash 3.2 front door delegating to python3 stdlib (zero new deps).
+# ─────────────────────────────────────────────────────────────────────────────
+set -euo pipefail
+
+SELF="$(cd "$(dirname "$0")" && pwd)"     # .../cli
+ROOT="${GLASSGATE_ROOT:-$(cd "$SELF/.." && pwd)}"
+EVENTS="${GLASSGATE_EVENTS:-$ROOT/logs/events.jsonl}"
+DB="${GLASSGATE_DB:-$ROOT/logs/trace.db}"
+LOCALE="${GLASSGATE_LOCALE:-zh}"
+
+py() { PYTHONPATH="$ROOT:${PYTHONPATH:-}" python3 "$@"; }
+
+need_python() { command -v python3 >/dev/null 2>&1 || { echo "✗ python3 is required" >&2; exit 1; }; }
+
+cmd_version() { need_python; py -c "import glasstrace; print('Glassgate', glasstrace.__version__)"; }
+
+cmd_doctor() {   # harness doctor = trace-layer health
+  need_python
+  py -m glasstrace.doctor --events "$EVENTS" --db "$DB"
+}
+
+cmd_trace() {
+  need_python
+  local sub="${1:-}"; shift || true
+  case "$sub" in
+    ingest) py -m glasstrace.ingest --db "$DB" "$EVENTS" ;;
+    doctor) py -m glasstrace.doctor --events "$EVENTS" --db "$DB" ;;
+    *) echo "✗ unknown trace subcommand: ${sub:-<none>} (use: ingest | doctor)" >&2; exit 2 ;;
+  esac
+}
+
+cmd_wall() {
+  need_python
+  local args=(--instance "$ROOT" --events "$EVENTS" --locale "$LOCALE")
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --replay) args+=(--replay); shift ;;
+      --out) args+=(--out "$2"); shift 2 ;;
+      *) echo "✗ unknown wall arg: $1" >&2; exit 2 ;;
+    esac
+  done
+  py -m glasstrace.wall "${args[@]}"
+}
+
+usage() {
+  cat >&2 <<EOF
+harness — Glassgate CLI (trace layer v0.1)
+
+Usage: harness <command>
+  version              print version
+  doctor               trace-layer health check (JSONL parse rate, DB/JSONL consistency)
+  trace ingest         fold logs/events.jsonl into the SQLite index
+  trace doctor         same as 'doctor'
+  wall [--replay]      generate the glass wall (--replay = time-travel view)
+EOF
+  exit 2
+}
+
+case "${1:-}" in
+  version) cmd_version ;;
+  doctor)  cmd_doctor ;;
+  trace)   shift; cmd_trace "$@" ;;
+  wall)    shift; cmd_wall "$@" ;;
+  ""|-h|--help|help) usage ;;
+  *) echo "✗ unknown command: $1" >&2; usage ;;
+esac
