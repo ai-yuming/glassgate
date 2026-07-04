@@ -6,6 +6,7 @@ deleted and rebuilt from the same JSONL must produce byte-identical query
 results — proving nothing lives only in the database.
 """
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
@@ -78,6 +79,25 @@ class IngestTests(unittest.TestCase):
         state = {(p, g): s for (p, g, s, _asof) in latest}
         self.assertEqual(state[("glassgate", "gate2")], "passed")  # transition won
         self.assertEqual(state[("glassgate", "gate3")], "todo")    # from snapshot
+
+    def test_relative_and_absolute_path_do_not_double_count(self):
+        # The idempotency key must identify the FILE, not the path spelling.
+        # Ingesting the same file once by relative name and once by absolute path
+        # must not create duplicate rows (backlog fix: resolve() the src path).
+        r1 = ingest.ingest([self.jsonl], self.db)  # absolute
+        self.assertEqual(r1["new"], 3)
+        cwd = os.getcwd()
+        try:
+            os.chdir(self.dir)
+            r2 = ingest.ingest(["events.jsonl"], self.db)  # relative to same file
+        finally:
+            os.chdir(cwd)
+        self.assertEqual(r2["new"], 0)
+        self.assertEqual(r2["skipped"], 3)
+        conn = sqlite3.connect(self.db)
+        count = conn.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+        conn.close()
+        self.assertEqual(count, 3)  # no duplicates
 
     def test_bad_line_is_counted_not_fatal(self):
         self.jsonl.write_text(

@@ -114,11 +114,13 @@ def ingest(jsonl_paths: Iterable[Path | str], db_path: Path | str) -> dict[str, 
                 f"Delete it and re-run ingest — JSONL is the source of truth."
             ) from exc
         new = skipped = bad = 0
-        all_events: list[dict[str, Any]] = []
         for path in jsonl_paths:
             path = Path(path)
             if not path.is_file():
                 continue
+            # Identify the file by its resolved absolute path, so relative and
+            # absolute references to the same file share one idempotency key.
+            resolved = path.resolve()
             text = path.read_text(encoding="utf-8")
             for lineno, raw in enumerate(text.splitlines(), start=1):
                 stripped = raw.strip()
@@ -133,8 +135,7 @@ def ingest(jsonl_paths: Iterable[Path | str], db_path: Path | str) -> dict[str, 
                     bad += 1
                     continue
                 ev = schema.normalize(obj)
-                all_events.append(ev)
-                src_line = f"{path}:{lineno}"
+                src_line = f"{resolved}:{lineno}"
                 cur = conn.execute(
                     "INSERT OR IGNORE INTO events"
                     "(ts,kind,project,tool,action,gate,from_state,to_state,extra,src_line)"
