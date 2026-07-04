@@ -62,6 +62,18 @@ class PendingPanelTests(unittest.TestCase):
         html = wall.build_regular(ledgers, [], LOCALE, instance="x", generated_at="now")
         self.assertIn(LOCALE["empty_pending"], html)
 
+    def test_only_the_blocked_project_gets_a_relay_command(self):
+        # gate6 post-hoc audit: among several projects, only the one whose frontier
+        # gate is blocked surfaces a relay command — the clear one appears only in
+        # lanes, never with an approval command.
+        ledgers = {
+            "alpha": {"gate1": "passed", "gate2": "blocked"},                  # pending
+            "beta": {"gate1": "passed", "gate2": "passed", "gate3": "progress"},  # clear
+        }
+        html = wall.build_regular(ledgers, [], LOCALE, instance="x", generated_at="now")
+        self.assertIn("alpha/_lifecycle.md", html)      # alpha has a relay command
+        self.assertNotIn("beta/_lifecycle.md", html)    # beta has none (not blocked)
+
 
 class ReplayWallTests(unittest.TestCase):
     def setUp(self):
